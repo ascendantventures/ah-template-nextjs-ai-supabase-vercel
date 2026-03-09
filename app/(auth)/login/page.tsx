@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { motion } from "framer-motion";
 import { createClient } from "@/lib/supabase/client";
 import { useRouter } from "next/navigation";
 import { Trophy, Mail, Lock, Loader2 } from "lucide-react";
@@ -56,7 +57,10 @@ export default function LoginPage() {
       className="flex min-h-screen items-center justify-center p-4"
       style={{ background: 'linear-gradient(135deg, var(--color-primary-dark) 0%, var(--color-primary) 50%, var(--color-primary-light) 100%)' }}
     >
-      <div
+      <motion.div
+        initial={{ opacity: 0, y: 20 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.4, ease: [0.16, 1, 0.3, 1] }}
         className="w-full max-w-md rounded-2xl p-8 shadow-2xl"
         style={{ backgroundColor: 'var(--color-surface)' }}
       >
@@ -175,7 +179,7 @@ export default function LoginPage() {
         <p className="text-center text-xs mt-6" style={{ color: 'var(--color-text-muted)' }}>
           Admin access only. Contact your administrator for credentials.
         </p>
-      </div>
+      </motion.div>
     </div>
   );
 }

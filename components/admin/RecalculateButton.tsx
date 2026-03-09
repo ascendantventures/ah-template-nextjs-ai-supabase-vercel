@@ -1,6 +1,7 @@
 'use client';
 
 import { useState } from 'react';
+import { motion } from 'framer-motion';
 import { RefreshCw } from 'lucide-react';
 import Toast from '@/components/ui/Toast';
 
@@ -24,7 +25,9 @@ export default function RecalculateButton() {
 
   return (
     <>
-      <button
+      <motion.button
+        whileTap={{ scale: 0.97 }}
+        transition={{ duration: 0.1 }}
         onClick={handleRecalculate}
         disabled={loading}
         className="flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-semibold text-white transition-colors disabled:opacity-50"
@@ -32,7 +35,7 @@ export default function RecalculateButton() {
       >
         <RefreshCw className={`w-4 h-4 ${loading ? 'animate-spin' : ''}`} />
         {loading ? 'Recalculating...' : 'Recalculate Rankings'}
-      </button>
+      </motion.button>
       {toast && <Toast message={toast.message} type={toast.type} onClose={() => setToast(null)} />}
     </>
   );

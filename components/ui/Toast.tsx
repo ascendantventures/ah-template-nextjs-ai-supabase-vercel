@@ -1,6 +1,7 @@
 'use client';
 
 import { useEffect, useState } from 'react';
+import { AnimatePresence, motion } from 'framer-motion';
 import { CheckCircle, XCircle, X } from 'lucide-react';
 
 export type ToastType = 'success' | 'error' | 'info';
@@ -34,18 +35,26 @@ export default function Toast({ message, type = 'info', duration = 4000, onClose
   const { bg, border, text, icon: Icon } = colors[type];
 
   return (
-    <div
-      className="fixed bottom-6 right-6 z-50 flex items-center gap-3 px-4 py-3 rounded-xl shadow-lg"
-      style={{ backgroundColor: bg, border: `1px solid ${border}`, color: text, maxWidth: 400 }}
-    >
-      <Icon className="w-5 h-5 flex-shrink-0" />
-      <span className="text-sm font-medium">{message}</span>
-      <button
-        onClick={() => { setVisible(false); onClose?.(); }}
-        className="ml-2 opacity-60 hover:opacity-100 transition-opacity"
-      >
-        <X className="w-4 h-4" />
-      </button>
-    </div>
+    <AnimatePresence>
+      {visible && (
+        <motion.div
+          initial={{ opacity: 0, x: 48 }}
+          animate={{ opacity: 1, x: 0 }}
+          exit={{ opacity: 0, x: 48 }}
+          transition={{ type: 'spring', stiffness: 300, damping: 30 }}
+          className="fixed bottom-6 right-6 z-50 flex items-center gap-3 px-4 py-3 rounded-xl shadow-lg"
+          style={{ backgroundColor: bg, border: `1px solid ${border}`, color: text, maxWidth: 400 }}
+        >
+          <Icon className="w-5 h-5 flex-shrink-0" />
+          <span className="text-sm font-medium">{message}</span>
+          <button
+            onClick={() => { setVisible(false); onClose?.(); }}
+            className="ml-2 opacity-60 hover:opacity-100 transition-opacity"
+          >
+            <X className="w-4 h-4" />
+          </button>
+        </motion.div>
+      )}
+    </AnimatePresence>
   );
 }
