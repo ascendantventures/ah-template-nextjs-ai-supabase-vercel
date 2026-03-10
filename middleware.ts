@@ -6,10 +6,10 @@ export async function middleware(request: NextRequest) {
 
   // Public routes - no auth needed
   const isPublicRoute =
-    pathname.startsWith('/rankings') ||
     pathname.startsWith('/events') ||
-    pathname.startsWith('/rules') ||
-    pathname.startsWith('/api/rankings') ||
+    pathname.startsWith('/api/events') ||
+    pathname.startsWith('/api/venues') ||
+    pathname.startsWith('/api/checkout/webhook') ||
     pathname.startsWith('/api/health') ||
     pathname.startsWith('/auth/confirm') ||
     pathname === '/' ||
@@ -20,7 +20,7 @@ export async function middleware(request: NextRequest) {
     return NextResponse.next();
   }
 
-  // Admin routes - need session
+  // Protected routes need session
   return await updateSession(request);
 }
 

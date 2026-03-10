@@ -1,86 +1,82 @@
 import { createAdminClient } from '@/lib/supabase/admin';
-import DashboardStats from '@/components/admin/DashboardStats';
-import { DashboardStats as DashboardStatsType } from '@/types';
-import { Upload, AlertCircle, Trophy } from 'lucide-react';
 import Link from 'next/link';
-import RecalculateButton from '@/components/admin/RecalculateButton';
-
-async function getStats(): Promise<DashboardStatsType> {
-  const supabase = createAdminClient();
-
-  const [athletes, events, pending, uploads, ranked] = await Promise.all([
-    supabase.from('athletes').select('id', { count: 'exact', head: true }),
-    supabase.from('events').select('id', { count: 'exact', head: true }),
-    supabase.from('match_results').select('id', { count: 'exact', head: true }).eq('resolution_status', 'UNRESOLVED'),
-    supabase.from('csv_uploads').select('id', { count: 'exact', head: true }).gte('created_at', new Date(Date.now() - 7 * 24 * 60 * 60 * 1000).toISOString()),
-    supabase.from('rankings').select('athlete_id', { count: 'exact', head: true }),
-  ]);
-
-  return {
-    totalAthletes: athletes.count || 0,
-    totalEvents: events.count || 0,
-    pendingResolutions: pending.count || 0,
-    recentUploads: uploads.count || 0,
-    athletesRanked: ranked.count || 0,
-  };
-}
+import { Users, Calendar, Ticket, TrendingUp, ShieldCheck, ChevronRight } from 'lucide-react';
 
 export default async function AdminDashboard() {
-  const stats = await getStats();
+  const supabase = createAdminClient();
+
+  const [usersResult, eventsResult, ordersResult, ticketsResult] = await Promise.all([
+    supabase.from('profiles').select('user_id', { count: 'exact', head: true }),
+    supabase.from('tix_events').select('event_id', { count: 'exact', head: true }),
+    supabase.from('orders').select('total_amount, status'),
+    supabase.from('tickets').select('ticket_id', { count: 'exact', head: true }),
+  ]);
+
+  const totalRevenue = ((ordersResult.data || []) as any[])
+    .filter((o: any) => o.status === 'completed')
+    .reduce((sum: number, o: any) => sum + (o.total_amount || 0), 0);
+
+  const stats = [
+    { label: 'Total Users', value: usersResult.count || 0, icon: Users, color: '#8B5CF6', href: '/admin/users' },
+    { label: 'Total Events', value: eventsResult.count || 0, icon: Calendar, color: '#06B6D4', href: '/admin/events' },
+    { label: 'Total Tickets', value: ticketsResult.count || 0, icon: Ticket, color: '#22C55E', href: '/admin/events' },
+    { label: 'Platform Revenue', value: `$${(totalRevenue / 100).toFixed(0)}`, icon: TrendingUp, color: '#F59E0B', href: '/admin/events' },
+  ];
 
   const quickActions = [
-    { href: '/admin/uploads', label: 'Upload Daedo CSV', icon: Upload, desc: 'Process match results from tournaments', alert: false },
-    { href: '/admin/resolution-queue', label: 'Review Queue', icon: AlertCircle, desc: `${stats.pendingResolutions} matches need identity resolution`, alert: stats.pendingResolutions > 0 },
-    { href: '/admin/events', label: 'Manage Events', icon: Trophy, desc: 'Set event grades and tiers', alert: false },
+    { href: '/admin/users', label: 'Manage Users', desc: 'View and manage user accounts and roles', icon: Users },
+    { href: '/admin/events', label: 'All Events', desc: 'Monitor all events across the platform', icon: Calendar },
   ];
 
   return (
-    <div className="p-8">
-      <div className="mb-8">
-        <h1 className="text-2xl font-bold" style={{ color: 'var(--color-text-primary)' }}>Dashboard</h1>
-        <p className="text-sm mt-1" style={{ color: 'var(--color-text-muted)' }}>USATKD Rankings Admin Panel</p>
+    <div style={{ padding: 32, maxWidth: 1100, margin: '0 auto' }}>
+      <div style={{ display: 'flex', alignItems: 'center', gap: 12, marginBottom: 8 }}>
+        <div style={{ width: 36, height: 36, borderRadius: 8, backgroundColor: 'rgba(139,92,246,0.2)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+          <ShieldCheck size={18} style={{ color: '#8B5CF6' }} />
+        </div>
+        <h1 style={{ fontSize: 28, fontWeight: 700, color: '#F4F4F5', margin: 0 }}>Platform Admin</h1>
+      </div>
+      <p style={{ color: '#A1A1AA', margin: '0 0 32px' }}>TicketHub admin dashboard</p>
+
+      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: 16, marginBottom: 32 }}>
+        {stats.map(stat => {
+          const Icon = stat.icon;
+          return (
+            <Link key={stat.label} href={stat.href} style={{ textDecoration: 'none', backgroundColor: '#141414', border: '1px solid rgba(255,255,255,0.08)', borderRadius: 12, padding: 20 }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 10 }}>
+                <div style={{ width: 36, height: 36, borderRadius: 8, backgroundColor: `${stat.color}20`, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                  <Icon size={18} style={{ color: stat.color }} />
+                </div>
+                <span style={{ fontSize: 13, color: '#A1A1AA' }}>{stat.label}</span>
+              </div>
+              <div style={{ fontSize: 28, fontWeight: 700, color: '#F4F4F5' }}>{stat.value}</div>
+            </Link>
+          );
+        })}
       </div>
 
-      <div className="mb-8">
-        <DashboardStats stats={stats} />
-      </div>
-
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-8">
+      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 16 }}>
         {quickActions.map(action => {
           const Icon = action.icon;
           return (
             <Link
               key={action.href}
               href={action.href}
-              className="rounded-xl p-5 transition-all hover:shadow-md"
-              style={{
-                backgroundColor: 'var(--color-surface)',
-                border: action.alert ? '1px solid #fed7aa' : '1px solid var(--color-border)',
-                boxShadow: 'var(--shadow-card)',
-              }}
+              style={{ textDecoration: 'none', backgroundColor: '#141414', border: '1px solid rgba(255,255,255,0.08)', borderRadius: 12, padding: 24, display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}
             >
-              <div
-                className="w-10 h-10 rounded-lg flex items-center justify-center mb-3"
-                style={{ backgroundColor: action.alert ? '#fff7ed' : '#0C4A6E15' }}
-              >
-                <Icon className="w-5 h-5" style={{ color: action.alert ? '#c2410c' : 'var(--color-primary)' }} />
+              <div style={{ display: 'flex', gap: 16, alignItems: 'center' }}>
+                <div style={{ width: 48, height: 48, borderRadius: 12, backgroundColor: 'rgba(139,92,246,0.15)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                  <Icon size={22} style={{ color: '#8B5CF6' }} />
+                </div>
+                <div>
+                  <div style={{ fontSize: 16, fontWeight: 600, color: '#F4F4F5' }}>{action.label}</div>
+                  <div style={{ fontSize: 13, color: '#71717A', marginTop: 2 }}>{action.desc}</div>
+                </div>
               </div>
-              <div className="font-semibold" style={{ color: 'var(--color-text-primary)' }}>{action.label}</div>
-              <div className="text-xs mt-1" style={{ color: action.alert ? '#c2410c' : 'var(--color-text-muted)' }}>{action.desc}</div>
+              <ChevronRight size={18} style={{ color: '#52525B' }} />
             </Link>
           );
         })}
-      </div>
-
-      <div
-        className="rounded-xl p-5"
-        style={{ backgroundColor: 'var(--color-surface)', border: '1px solid var(--color-border)', boxShadow: 'var(--shadow-card)' }}
-      >
-        <h2 className="text-base font-semibold mb-1" style={{ color: 'var(--color-text-primary)' }}>Rankings Recalculation</h2>
-        <p className="text-sm mb-3" style={{ color: 'var(--color-text-muted)' }}>
-          Manually trigger a full recalculation of all rankings from match results.
-        </p>
-        <RecalculateButton />
       </div>
     </div>
   );

@@ -1,10 +1,21 @@
-import AdminSidebar from '@/components/navigation/AdminSidebar';
+import { createClient } from '@/lib/supabase/server';
+import { redirect } from 'next/navigation';
+import Sidebar from '@/components/navigation/Sidebar';
 
-export default function AdminLayout({ children }: { children: React.ReactNode }) {
+export default async function AdminLayout({ children }: { children: React.ReactNode }) {
+  const supabase = await createClient();
+  const { data: { user } } = await supabase.auth.getUser();
+  if (!user) redirect('/login');
+
+  const { data: profile } = await supabase.from('profiles').select('role').eq('user_id', user.id).single();
+  if (profile?.role !== 'platform_admin') {
+    redirect('/dashboard');
+  }
+
   return (
-    <div className="flex min-h-screen" style={{ backgroundColor: 'var(--color-background)' }}>
-      <AdminSidebar />
-      <main className="flex-1 overflow-auto">
+    <div style={{ display: 'flex', minHeight: '100vh', backgroundColor: '#09090B' }}>
+      <Sidebar role="platform_admin" />
+      <main style={{ flex: 1, minHeight: '100vh', overflowY: 'auto' }}>
         {children}
       </main>
     </div>

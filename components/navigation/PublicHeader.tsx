@@ -2,66 +2,96 @@
 
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
-import { Trophy } from 'lucide-react';
-
-const navLinks = [
-  { href: '/rankings', label: 'Rankings' },
-  { href: '/events', label: 'Events' },
-  { href: '/rules', label: 'Rules' },
-];
+import { Ticket, Menu, X, LogIn, UserPlus } from 'lucide-react';
+import { useState } from 'react';
+import { createClient } from '@/lib/supabase/client';
+import { useRouter } from 'next/navigation';
 
 export default function PublicHeader() {
   const pathname = usePathname();
+  const router = useRouter();
+  const [menuOpen, setMenuOpen] = useState(false);
+
+  const navLinks = [
+    { href: '/events', label: 'Events' },
+    { href: '/dashboard', label: 'My Tickets' },
+  ];
+
+  async function handleSignOut() {
+    const supabase = createClient();
+    await supabase.auth.signOut();
+    router.push('/events');
+    router.refresh();
+  }
 
   return (
-    <header style={{ backgroundColor: 'var(--color-primary)' }} className="text-white shadow-md">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="flex items-center justify-between h-16">
-          <Link href="/" className="flex items-center gap-3">
-            <div className="flex items-center justify-center w-9 h-9 rounded-lg bg-white/10">
-              <Trophy className="w-5 h-5 text-white" />
-            </div>
-            <span className="text-lg font-bold tracking-tight">USATKD Rankings</span>
-          </Link>
+    <header style={{
+      position: 'sticky',
+      top: 0,
+      zIndex: 50,
+      height: 64,
+      backgroundColor: 'rgba(9,9,11,0.80)',
+      backdropFilter: 'blur(12px) saturate(180%)',
+      borderBottom: '1px solid rgba(255,255,255,0.06)',
+    }}>
+      <div style={{ maxWidth: 1280, margin: '0 auto', padding: '0 24px', height: '100%', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+        <Link href="/events" style={{ display: 'flex', alignItems: 'center', gap: 10, textDecoration: 'none' }}>
+          <div style={{ width: 32, height: 32, borderRadius: 8, backgroundColor: '#8B5CF6', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+            <Ticket size={18} strokeWidth={2} style={{ color: '#fff' }} />
+          </div>
+          <span style={{ fontSize: 20, fontWeight: 700, color: '#F4F4F5' }}>TicketHub</span>
+        </Link>
 
-          <nav className="hidden md:flex items-center gap-1">
-            {navLinks.map(link => (
-              <Link
-                key={link.href}
-                href={link.href}
-                className={`px-4 py-2 rounded-md text-sm font-medium transition-colors ${
-                  pathname.startsWith(link.href)
-                    ? 'bg-white/20 text-white'
-                    : 'text-white/80 hover:text-white hover:bg-white/10'
-                }`}
-              >
-                {link.label}
-              </Link>
-            ))}
+        <nav style={{ display: 'flex', alignItems: 'center', gap: 32 }} className="hidden md:flex">
+          {navLinks.map(link => (
             <Link
-              href="/login"
-              className="ml-4 px-4 py-2 rounded-md text-sm font-medium bg-white/10 hover:bg-white/20 transition-colors border border-white/20"
+              key={link.href}
+              href={link.href}
+              style={{
+                fontSize: 14,
+                fontWeight: 500,
+                color: pathname.startsWith(link.href) ? '#F4F4F5' : '#A1A1AA',
+                textDecoration: 'none',
+                transition: 'color 150ms ease',
+              }}
             >
-              Admin Login
+              {link.label}
             </Link>
-          </nav>
+          ))}
+        </nav>
 
-          {/* Mobile nav */}
-          <nav className="md:hidden flex items-center gap-2">
-            {navLinks.map(link => (
-              <Link
-                key={link.href}
-                href={link.href}
-                className={`px-2 py-1 rounded text-xs font-medium transition-colors ${
-                  pathname.startsWith(link.href)
-                    ? 'bg-white/20 text-white'
-                    : 'text-white/80 hover:text-white'
-                }`}
-              >
-                {link.label}
-              </Link>
-            ))}
-          </nav>
+        <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
+          <Link href="/login" style={{
+            padding: '8px 16px',
+            borderRadius: 10,
+            fontSize: 14,
+            fontWeight: 600,
+            color: '#A1A1AA',
+            textDecoration: 'none',
+            transition: 'color 150ms ease',
+          }}>
+            Sign In
+          </Link>
+          <Link href="/signup" style={{
+            padding: '8px 16px',
+            borderRadius: 10,
+            fontSize: 14,
+            fontWeight: 600,
+            color: '#fff',
+            textDecoration: 'none',
+            backgroundColor: '#8B5CF6',
+            boxShadow: '0 4px 12px rgba(139,92,246,0.4)',
+            transition: 'all 150ms ease',
+          }}>
+            Sign Up
+          </Link>
+          <button
+            onClick={() => setMenuOpen(!menuOpen)}
+            style={{ background: 'none', border: 'none', color: '#A1A1AA', cursor: 'pointer', display: 'none' }}
+            className="md:hidden"
+          >
+            {menuOpen ? <X size={24} /> : <Menu size={24} />}
+          </button>
         </div>
       </div>
     </header>
