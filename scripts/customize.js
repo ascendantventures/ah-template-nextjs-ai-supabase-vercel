@@ -20,6 +20,8 @@ const {
   primaryColor = '#000000',
   supabaseUrl = '',
   supabaseAnonKey = '',
+  aiProvider = 'anthropic',
+  aiModel = 'claude-3-5-haiku-20241022',
 } = manifest;
 
 // Token replacement map
@@ -27,12 +29,15 @@ const tokens = {
   '__PROJECT_NAME__': name,
   '__PROJECT_DESCRIPTION__': description,
   '__PRIMARY_COLOR__': primaryColor,
+  '__AI_PROVIDER__': aiProvider,
+  '__AI_MODEL__': aiModel,
 };
 
 // Files to process
 const targets = [
   'app/layout.tsx',
   'app/page.tsx',
+  'app/chat/page.tsx',
   'package.json',
   'README.md',
 ];
@@ -52,6 +57,10 @@ targets.forEach(file => {
 const envContent = `NEXT_PUBLIC_SUPABASE_URL=${supabaseUrl}
 NEXT_PUBLIC_SUPABASE_ANON_KEY=${supabaseAnonKey}
 NEXT_PUBLIC_APP_URL=http://localhost:3000
+AI_PROVIDER=${aiProvider}
+AI_MODEL=${aiModel}
+ANTHROPIC_API_KEY=
+OPENAI_API_KEY=
 `;
 fs.writeFileSync('.env.local', envContent);
 console.log('✓ .env.local generated');
