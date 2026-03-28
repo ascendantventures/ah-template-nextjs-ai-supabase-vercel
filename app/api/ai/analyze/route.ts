@@ -3,6 +3,8 @@ import { createClient } from '@/lib/supabase/server'
 import { getAnthropicClient, getOpenAIClient, provider, model } from '@/lib/ai/client'
 import type { AnalysisResult } from '@/lib/ai/types'
 
+export const runtime = 'nodejs'
+
 export async function POST(req: NextRequest) {
   try {
     const supabase = await createClient()

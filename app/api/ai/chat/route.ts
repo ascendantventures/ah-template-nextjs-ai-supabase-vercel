@@ -6,6 +6,8 @@ import type { Message } from '@/lib/ai/types'
 // Note: no edge runtime — Supabase SSR client requires cookies() from next/headers
 // which is incompatible with edge runtime. Non-streaming response used instead.
 
+export const runtime = 'nodejs'
+
 export async function POST(req: NextRequest) {
   try {
     const supabase = await createClient()
