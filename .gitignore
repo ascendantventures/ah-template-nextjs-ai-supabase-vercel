@@ -40,3 +40,14 @@ yarn-error.log*
 # typescript
 *.tsbuildinfo
 next-env.d.ts
+
+# Foundary audit logs (local only)
+.foundary/audit/
+.foundary/context-*.json
+.foundary/state-*.json
+# Foundary tool artifacts (local only)
+.context7-session.json
+.impeccable-audit.md
+.uiux-pro-max-review.md
+# Foundary generated per-pipeline files
+.foundary/scope-constraint.md
